@@ -64,11 +64,11 @@ public class Client2 {
 					message = in.next();
 					// send message to Server2 via PrintWriter
 					String encryptedMessage = encrypt(message);
-					msgCount++;
+					//msgCount++;
 					//updateTextFile(encryptedMessage, msgCount);
-					System.out.println(encryptedMessage + " " + msgCount);
+					System.out.println(encryptedMessage);
 					out.println(encryptedMessage);
-					out.println(msgCount);
+					//out.println(msgCount);
 					out.flush();
 				} else {
 					System.out.println("Please enter directory path to image. ");
@@ -77,11 +77,11 @@ public class Client2 {
 					byte[] buffer = new byte[fis.available()];
 					fis.read(buffer);
 					String s = encryptImage(buffer);
-					msgCount++;
+					//msgCount++;
 					//updateTextFile(s, msgCount);
 					ObjectOutputStream outToServer = new ObjectOutputStream(socket.getOutputStream());
 					outToServer.writeObject(s);
-					outToServer.writeInt(msgCount);
+					//outToServer.writeInt(msgCount);
 					outToServer.flush();
 				}
 			} else {

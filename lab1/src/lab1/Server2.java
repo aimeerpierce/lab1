@@ -18,7 +18,7 @@ public class Server2 implements Runnable {
 	private Thread mainThread = null;
 	private File file = new File("chat.txt");
 	private PrintWriter writer;
-	private int msgCount;
+	private int msgCount = 0;
 	private int port;
 	private String clientName;
 	private ArrayList<ClientHandler> clientList;
@@ -55,7 +55,8 @@ public class Server2 implements Runnable {
 
 				// spawn thread to handle client request
 				// pass name to client handler
-				Thread t = new Thread(new ClientHandler(clientSocket, clientName));
+				msgCount++;
+				Thread t = new Thread(new ClientHandler(clientSocket, clientName, msgCount));
 				t.start();
 				
 				
@@ -83,16 +84,16 @@ class ClientHandler implements Runnable {
 	private int msgCount;
 	String[] clients;
 
-	ClientHandler(Socket s, String name) {
+	ClientHandler(Socket s, String name, int count) {
 		this.s = s;
 		clientName = name;
+		msgCount = count;
 	}
 
 	// This is the client handling code
 	// This keeps running handling client requests
 	// after initially sending some stuff to the client
 	public void run() {
-		System.out.print(s.isClosed());
 		Scanner in;
 		PrintWriter out;
 		int count = 0;
@@ -106,7 +107,7 @@ class ClientHandler implements Runnable {
 			while (!in.hasNextLine()) {
 			}
 			message = in.nextLine();
-			msgCount = in.nextInt();
+			//msgCount = in.nextInt();
 
 			// PRINT SOME STUFF TO THE CLIENT
 			//out.println("print Hello There"+ clientName);
@@ -115,7 +116,7 @@ class ClientHandler implements Runnable {
 			out.flush();
 			// out.println("print You get three wishes!");
 			// out.flush(); // force the output
-
+			
 			Thread t = new Thread(new ClientThread(s, clientName, message, msgCount));
 			t.start();
 
@@ -171,6 +172,7 @@ class ClientThread implements Runnable {
 			out.flush();
 			
 			updateTextFile(decryptedMessage, clientName, msgCount);
+			//msgCount++;
 			
 			//out.close();
 		} catch (IOException e) {
