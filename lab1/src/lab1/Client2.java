@@ -61,16 +61,24 @@ public class Client2 {
 
 				// get message as string or image file
 				if (isMessage == true) {
-					System.out.println("Please enter message as a string: ");
-					message = in.next();
-					// send message to Server2 via PrintWriter
-					String encryptedMessage = encrypt(message);
-					// msgCount++;
-					// updateTextFile(encryptedMessage, msgCount);
-					System.out.println(encryptedMessage);
-					out.println(encryptedMessage);
-					// out.println(msgCount);
-					out.flush();
+					int moreMessages = 1;
+					while (moreMessages == 1) {
+						System.out.println("Please enter message as a string: ");
+						in.nextLine();
+						message = in.nextLine();
+						// send message to Server2 via PrintWriter
+						String encryptedMessage = encrypt(message);
+						// msgCount++;
+						// updateTextFile(encryptedMessage, msgCount);
+						//System.out.println(encryptedMessage);
+						out.println(encryptedMessage);
+						// out.println(msgCount);
+						
+						System.out.println("Would you like to enter another message? For yes enter '1' for no enter '0'.");
+						moreMessages = in.nextInt();
+						out.flush();
+					}
+	
 				} else {
 					System.out.println("Please enter directory path to image. ");
 					String filePath = in.next();
