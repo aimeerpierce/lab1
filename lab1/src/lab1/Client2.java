@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -64,11 +65,11 @@ public class Client2 {
 					message = in.next();
 					// send message to Server2 via PrintWriter
 					String encryptedMessage = encrypt(message);
-					//msgCount++;
-					//updateTextFile(encryptedMessage, msgCount);
+					// msgCount++;
+					// updateTextFile(encryptedMessage, msgCount);
 					System.out.println(encryptedMessage);
 					out.println(encryptedMessage);
-					//out.println(msgCount);
+					// out.println(msgCount);
 					out.flush();
 				} else {
 					System.out.println("Please enter directory path to image. ");
@@ -77,11 +78,11 @@ public class Client2 {
 					byte[] buffer = new byte[fis.available()];
 					fis.read(buffer);
 					String s = encryptImage(buffer);
-					//msgCount++;
-					//updateTextFile(s, msgCount);
+					// msgCount++;
+					// updateTextFile(s, msgCount);
 					ObjectOutputStream outToServer = new ObjectOutputStream(socket.getOutputStream());
 					outToServer.writeObject(s);
-					//outToServer.writeInt(msgCount);
+					// outToServer.writeInt(msgCount);
 					outToServer.flush();
 				}
 			} else {
@@ -96,15 +97,14 @@ public class Client2 {
 				System.out.println("Broadcast message to all clients: ");
 				System.out.print("Enter message: ");
 				String message = in.nextLine();
-			}
-			else if (option == 2) {
-				//Display chat.txt log
-			}
-			else if (option == 3) {
+			} else if (option == 2) {
+				System.out.println("Chat Log: ");
+				displayLog();
+			} else if (option == 3) {
 				System.out.println("Please enter a message number to delete. ");
 				int deleteNum = in.nextInt();
 				deleteMessage(deleteNum);
-				System.out.print("Message "+ deleteNum + " deleted.");
+				System.out.print("Message " + deleteNum + " deleted.");
 			}
 
 		} catch (UnknownHostException e) {
@@ -199,7 +199,7 @@ public class Client2 {
 		char c, tmp;
 		System.out.println("");
 		for (int i = 0; i < msg.length(); i++) {
-			//System.out.println(i);
+			// System.out.println(i);
 			c = msg.charAt(i);
 			xor = c ^ key;
 			tmp = (char) xor;
@@ -220,7 +220,7 @@ public class Client2 {
 			try {
 				this.lc = lc;
 				in = new Scanner(new BufferedInputStream(s.getInputStream()));
-				//System.out.println(in.nextLine());
+				// System.out.println(in.nextLine());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -229,13 +229,13 @@ public class Client2 {
 		@Override
 		public void run() {
 			while (true) { // run forever
-				//System.out.println("Client - waiting to read");
-				//String cmd = in.next();
-				if(in.hasNext()){
-				String s = in.nextLine();
-				lc.handleMessage(s);
-				} 
-				
+				// System.out.println("Client - waiting to read");
+				// String cmd = in.next();
+				if (in.hasNext()) {
+					String s = in.nextLine();
+					lc.handleMessage(s);
+				}
+
 			}
 
 		}
@@ -252,7 +252,6 @@ public class Client2 {
 		// default:
 		// System.out.println("client side: unknown command received:" + cmd);
 	}
-
 
 	public static void deleteMessage(int msgIndex) throws IOException {
 
@@ -290,5 +289,18 @@ public class Client2 {
 		writer.close();
 		scan.close();
 		tmpFile.renameTo(fileName);
+	}
+
+	public static void displayLog() throws IOException {
+		InputStream input = new BufferedInputStream(new FileInputStream("chat.txt"));
+		byte[] buffer = new byte[8192];
+
+		try {
+			for (int length = 0; (length = input.read(buffer)) != -1;) {
+				System.out.write(buffer, 0, length);
+			}
+		} finally {
+			input.close();
+		}
 	}
 }

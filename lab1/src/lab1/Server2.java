@@ -168,7 +168,7 @@ class ClientThread implements Runnable {
 			out.println("Server received: " + message);
 			out.flush();
 			String decryptedMessage = decrypt(message);
-			out.println("Writing " + decryptedMessage + " to chat2.txt.");
+			out.println("Writing " + decryptedMessage + " to chat.txt.");
 			out.flush();
 			
 			updateTextFile(decryptedMessage, clientName, msgCount);
