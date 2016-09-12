@@ -21,7 +21,9 @@ public class Server2 implements Runnable {
 	private int msgCount = 0;
 	private int port;
 	private String clientName;
-	private ArrayList<ClientHandler> clientList;
+	private ArrayList<ClientHandler> clientList = new ArrayList<ClientHandler>();
+	private ClientHandler client;
+	public boolean writeToAll = false;
 
 	public Server2() {
 		port = 7777;
@@ -46,25 +48,39 @@ public class Server2 implements Runnable {
 			try {
 				// wait for client to connect to server
 				clientSocket = serverSocket.accept();
-				//clientList = new ArrayList<String>();
+				
 				in = new Scanner(new BufferedInputStream(clientSocket.getInputStream()));
 
 				// Get clientName from Client2
 				clientName = in.nextLine();
-				//System.out.print(clientSocket.isClosed());
+				
+				//if clientName is admin, send message to writeToAll() method instead of write() method
+				if(clientName.equals("admin") && clientList.size() > 0){
+					writeToAll = true;
+					while (!in.hasNextLine()) {}
+					String message = in.nextLine();
+					for(ClientHandler c : clientList){
+						System.out.println(c.clientName);
+						msgCount++;
+						c.write(clientSocket, c.clientName, message, msgCount);
+					}
+				} else {
 
-				// spawn thread to handle client request
-				// pass name to client handler
-				msgCount++;
-				Thread t = new Thread(new ClientHandler(clientSocket, clientName, msgCount));
-				t.start();
+					// spawn new thread to handle client request
+					// pass name to client handler, increment msgCount as unique identifier for message
+					msgCount++;
+					client = new ClientHandler(clientSocket, clientName, msgCount);//, writeToAll);
+					
+					//add client to list of clients
+					clientList.add(client);
+					Thread t = new Thread(client);
+					t.start();
 				
-				
+				}
 			} catch (IOException e) {
 				System.out.println("Accept failed: " + this.port);
 				System.exit(-1);
 			}
-			//in.close();
 		}
 
 	}
@@ -74,29 +90,32 @@ public class Server2 implements Runnable {
 		(new Thread(server)).start();
 
 	} // end of main method
-
+	
+	void writeToAll(Socket socket, ArrayList<ClientHandler> list, String message, int messageCount){
+		
+	}
 } // end of class MyServer
 
 class ClientHandler implements Runnable {
 	Socket s; // this is socket on the server side that connects to Client2
 	int num; // keeps track of its number just for identifying purposes
-	private String clientName;
+	String clientName;
 	private int msgCount;
+	//private boolean writeToAll;
 	String[] clients;
 
-	ClientHandler(Socket s, String name, int count) {
+	ClientHandler(Socket s, String name, int count){//, boolean writeAll) {
 		this.s = s;
 		clientName = name;
 		msgCount = count;
+		//this.writeToAll = writeAll;
 	}
 
 	// This is the client handling code
-	// This keeps running handling client requests
-	// after initially sending some stuff to the client
+	// This keeps running handling client requests after initially sending some stuff to the client
 	public void run() {
 		Scanner in;
 		PrintWriter out;
-		int count = 0;
 		String message;
 		try {
 			// 1. GET SOCKET IN/OUT STREAMS
@@ -104,8 +123,9 @@ class ClientHandler implements Runnable {
 			out = new PrintWriter(new BufferedOutputStream(s.getOutputStream()));
 
 			// 2. Get clientName
-			while (!in.hasNextLine()) {
-			}
+			//this is because getting the next line is not a blocking call
+			//the while loop is saying to wait until we DO have a next line, i.e. the message
+			while (!in.hasNextLine()) {}
 			message = in.nextLine();
 			//msgCount = in.nextInt();
 
@@ -114,14 +134,12 @@ class ClientHandler implements Runnable {
 			//out.println
 			out.println(("Message: " + message + " Message count: " + msgCount));
 			out.flush();
-			// out.println("print You get three wishes!");
-			// out.flush(); // force the output
 			
-			Thread t = new Thread(new ClientThread(s, clientName, message, msgCount));
-			t.start();
-
+			//write message to server
+			//if(writeToAll == false){
+				write(s, clientName, message, msgCount);
+			
 			// 3. KEEP LISTENING AND RESPONDING TO CLIENT REQUESTS
-
 			// while (true) {
 			// System.out.println("Server - waiting to read");
 			// while(!in.hasNextLine()){}
@@ -142,8 +160,14 @@ class ClientHandler implements Runnable {
 	void handleRequest(String s, int count) {
 		clients[count] = s;
 	}
-
+	
+	void write(Socket socket, String clientName, String message, int messageCount){
+		Thread t = new Thread(new ClientThread(socket, clientName, message, messageCount));
+		t.start();
+	}
+	
 } // end of class ClientHandler
+	
 
 class ClientThread implements Runnable {
 	private String message;

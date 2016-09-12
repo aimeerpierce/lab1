@@ -26,6 +26,7 @@ public class Client2 {
 	Image image = null;
 	boolean isMessage;
 	boolean isAdmin = false;
+	boolean writeToAll = false;
 
 	Client2(String ipAddr, int serverPort) {
 		// get username
@@ -39,6 +40,7 @@ public class Client2 {
 		}
 
 		PrintWriter out;
+		
 		// connect to server2
 		try {
 			// connect to socket
@@ -53,6 +55,7 @@ public class Client2 {
 			if (isAdmin == false) {
 				System.out.print("Are you sending a message(0) or image(1)? (0/1): ");
 				option = in.nextInt();
+				in.nextLine();
 				if (option == 0) {
 					isMessage = true;
 				} else {
@@ -64,21 +67,18 @@ public class Client2 {
 					int moreMessages = 1;
 					while (moreMessages == 1) {
 						System.out.println("Please enter message as a string: ");
-						in.nextLine();
+						//in.nextLine();
 						message = in.nextLine();
 						// send message to Server2 via PrintWriter
 						String encryptedMessage = encrypt(message);
-						// msgCount++;
-						// updateTextFile(encryptedMessage, msgCount);
-						//System.out.println(encryptedMessage);
 						out.println(encryptedMessage);
-						// out.println(msgCount);
+						out.flush();
 						
 						System.out.println("Would you like to enter another message? For yes enter '1' for no enter '0'.");
 						moreMessages = in.nextInt();
-						out.flush();
+						in.nextLine();
+						
 					}
-	
 				} else {
 					System.out.println("Please enter directory path to image. ");
 					String filePath = in.next();
@@ -100,17 +100,23 @@ public class Client2 {
 				System.out.println("(3) Delete message number in chat.txt");
 				System.out.print("Selection (1/2/3): ");
 				option = in.nextInt();
+				in.nextLine();
 			}
 			if (option == 1) {
 				System.out.println("Broadcast message to all clients: ");
 				System.out.print("Enter message: ");
+				writeToAll = true;
 				String message = in.nextLine();
+				String encryptedMessage = encrypt(message);
+				out.println(encryptedMessage);
+				out.flush();
 			} else if (option == 2) {
 				System.out.println("Chat Log: ");
 				displayLog();
 			} else if (option == 3) {
 				System.out.println("Please enter a message number to delete. ");
 				int deleteNum = in.nextInt();
+				in.nextLine();
 				deleteMessage(deleteNum);
 				System.out.print("Message " + deleteNum + " deleted.");
 			}
@@ -243,9 +249,7 @@ public class Client2 {
 					String s = in.nextLine();
 					lc.handleMessage(s);
 				}
-
 			}
-
 		}
 	}
 
