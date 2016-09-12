@@ -32,6 +32,10 @@ public class Server2 implements Runnable {
 			serverSocket = new ServerSocket(port);
 			System.out.println("Server started: " + serverSocket + "At port " + port);
 
+			// clear previous chat log
+			try (PrintWriter pw = new PrintWriter("chat.txt")) { pw.close();
+			} catch (IOException e) {}
+
 		} catch (IOException ioe) {
 			System.out.println("Can not bind to port " + port + ": " + ioe.getMessage());
 			System.exit(-1);
@@ -48,18 +52,20 @@ public class Server2 implements Runnable {
 			try {
 				// wait for client to connect to server
 				clientSocket = serverSocket.accept();
-				
+
 				in = new Scanner(new BufferedInputStream(clientSocket.getInputStream()));
 
 				// Get clientName from Client2
 				clientName = in.nextLine();
-				
-				//if clientName is admin, send message to writeToAll() method instead of write() method
-				if(clientName.equals("admin") && clientList.size() > 0){
+
+				// if clientName is admin, send message to writeToAll() method
+				// instead of write() method
+				if (clientName.equals("admin") && clientList.size() > 0) {
 					writeToAll = true;
-					while (!in.hasNextLine()) {}
+					while (!in.hasNextLine()) {
+					}
 					String message = in.nextLine();
-					for(ClientHandler c : clientList){
+					for (ClientHandler c : clientList) {
 						System.out.println(c.clientName);
 						msgCount++;
 						c.write(clientSocket, c.clientName, message, msgCount);
@@ -67,15 +73,17 @@ public class Server2 implements Runnable {
 				} else {
 
 					// spawn new thread to handle client request
-					// pass name to client handler, increment msgCount as unique identifier for message
+					// pass name to client handler, increment msgCount as unique
+					// identifier for message
 					msgCount++;
-					client = new ClientHandler(clientSocket, clientName, msgCount);//, writeToAll);
-					
-					//add client to list of clients
+					client = new ClientHandler(clientSocket, clientName, msgCount);// ,
+																					// writeToAll);
+
+					// add client to list of clients
 					clientList.add(client);
 					Thread t = new Thread(client);
 					t.start();
-				
+
 				}
 			} catch (IOException e) {
 				System.out.println("Accept failed: " + this.port);
@@ -90,9 +98,9 @@ public class Server2 implements Runnable {
 		(new Thread(server)).start();
 
 	} // end of main method
-	
-	void writeToAll(Socket socket, ArrayList<ClientHandler> list, String message, int messageCount){
-		
+
+	void writeToAll(Socket socket, ArrayList<ClientHandler> list, String message, int messageCount) {
+
 	}
 } // end of class MyServer
 
@@ -101,18 +109,19 @@ class ClientHandler implements Runnable {
 	int num; // keeps track of its number just for identifying purposes
 	String clientName;
 	private int msgCount;
-	//private boolean writeToAll;
+	// private boolean writeToAll;
 	String[] clients;
 
-	ClientHandler(Socket s, String name, int count){//, boolean writeAll) {
+	ClientHandler(Socket s, String name, int count) {// , boolean writeAll) {
 		this.s = s;
 		clientName = name;
 		msgCount = count;
-		//this.writeToAll = writeAll;
+		// this.writeToAll = writeAll;
 	}
 
 	// This is the client handling code
-	// This keeps running handling client requests after initially sending some stuff to the client
+	// This keeps running handling client requests after initially sending some
+	// stuff to the client
 	public void run() {
 		Scanner in;
 		PrintWriter out;
@@ -123,22 +132,28 @@ class ClientHandler implements Runnable {
 			out = new PrintWriter(new BufferedOutputStream(s.getOutputStream()));
 
 			// 2. Get clientName
-			//this is because getting the next line is not a blocking call
-			//the while loop is saying to wait until we DO have a next line, i.e. the message
-			while (!in.hasNextLine()) {}
-			message = in.nextLine();
-			//msgCount = in.nextInt();
+			// this is because getting the next line is not a blocking call
+			// the while loop is saying to wait until we DO have a next line,
+			// i.e. the message
+			while (true) {
+				while (!in.hasNextLine()) {
+				}
+				message = in.nextLine();
+				// msgCount = in.nextInt();
 
-			// PRINT SOME STUFF TO THE CLIENT
-			//out.println("print Hello There"+ clientName);
-			//out.println
-			out.println(("Message: " + message + " Message count: " + msgCount));
-			out.flush();
-			
-			//write message to server
-			//if(writeToAll == false){
+				// PRINT SOME STUFF TO THE CLIENT
+				// out.println("print Hello There"+ clientName);
+				// out.println
+				// System.out.println(("Message: " + message + " Message count:
+				// " + msgCount));
+				out.println(("Message: " + message + " Message count: " + msgCount));
+				out.flush();
+
+				// write message to server
+				// if(writeToAll == false){
 				write(s, clientName, message, msgCount);
-			
+				msgCount++;
+			}
 			// 3. KEEP LISTENING AND RESPONDING TO CLIENT REQUESTS
 			// while (true) {
 			// System.out.println("Server - waiting to read");
@@ -160,14 +175,13 @@ class ClientHandler implements Runnable {
 	void handleRequest(String s, int count) {
 		clients[count] = s;
 	}
-	
-	void write(Socket socket, String clientName, String message, int messageCount){
+
+	void write(Socket socket, String clientName, String message, int messageCount) {
 		Thread t = new Thread(new ClientThread(socket, clientName, message, messageCount));
 		t.start();
 	}
-	
+
 } // end of class ClientHandler
-	
 
 class ClientThread implements Runnable {
 	private String message;
@@ -194,17 +208,17 @@ class ClientThread implements Runnable {
 			String decryptedMessage = decrypt(message);
 			out.println("Writing " + decryptedMessage + " to chat.txt.");
 			out.flush();
-			
+
 			updateTextFile(decryptedMessage, clientName, msgCount);
-			//msgCount++;
-			
-			//out.close();
+			// msgCount++;
+
+			// out.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
 	}
-	
+
 	public static void updateTextFile(String s, String clientName, int msgCount) {
 
 		// hard code in text file path
@@ -216,7 +230,7 @@ class ClientThread implements Runnable {
 				PrintWriter out = new PrintWriter(bw)) {
 			String msgWithNum = msgCount + " " + clientName + " " + s;
 			out.println(msgWithNum);
-			
+
 			//fw.close();
 			//bw.close();
 			//out.close();
@@ -224,6 +238,7 @@ class ClientThread implements Runnable {
 		}
 
 	}
+
 	private static String decrypt(String input) {
 		String txt = input;
 		char key = 0xF0;
